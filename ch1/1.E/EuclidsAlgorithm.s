@@ -2,8 +2,9 @@
 .align 2
 
 _start: 
-	mov	x3, #119
-	mov	x4, #153
+	mov	x6, #10	// print_base
+	mov	x3, #1386
+	mov	x4, #3213
 	cmp	x3, x4
 	bge	algorithm_right
 	b	algorithm_left
@@ -23,33 +24,40 @@ algorithm_right:
 	b	algorithm_left
 
 print_success:
+	mov	x7, #16
 	mov	x0, #1
-	adr	x1, success
-	mov	x2, #11
-	mov	x16, #4
-	svc	#0x80
-	b	exit
-
-print_failure:
-	mov	x0, #1
-	adr	x1, failure
-	mov	x2, #12
+	mov	x1, sp
+	add	x4, x4, #1
+	add	x1, x1, x4
+	sub	x2, x7, x4
 	mov	x16, #4
 	svc	#0x80
 	b	exit
 
 check:
 	add	x5, x3, x4
-	cmp	x5, #17
-	bne	print_failure
-	beq	print_success
+	mov	x1, x5
+	sub	sp, sp, #16
+	mov	x4, #15
+	mov	x5, #10
+	strb	w5, [sp, x4]
+	sub	x4, x4, #1
+	bl	digitize
+	b	print_success
+
+digitize:
+	udiv	x2, x1, x6
+	msub	x3, x2, x6, x1
+	mov	x1, x2
+	add	x2, sp, x5
+	add	x5, x3, #48
+	strb	w5, [sp, x4]
+	sub	x4, x4, #1
+	cmp	x1, #0
+	bne	digitize
+	ret
 
 exit:
 	mov	x16, #1
 	svc	#0x80
-	
-	
 
-
-success:	.ascii "It worked!\n"	
-failure:	.ascii "it failed\n"
